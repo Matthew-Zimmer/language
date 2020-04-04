@@ -32,11 +32,11 @@ namespace Slate::Language
     class Terminate 
     {
     public:
-        void Print()
+        void print()
         {
             std::cout << "$" << std::endl;
         }
-        static bool Is_Valid(std::string const&)
+        static bool is_valid(std::string const&)
         {
             return false;
         }
@@ -79,7 +79,7 @@ namespace Slate::Language
         {
         public:
             using Production = Wrap<Wrap<Type>>;
-            void Print()
+            void print()
             {
                 std::cout << "START_STATE" << std::endl;
             }
@@ -144,11 +144,11 @@ namespace Slate::Language
     class Keyword 
     {
     public:
-        static bool Is_Valid(std::string const& s)
+        static bool is_valid(std::string const& s)
         {
             return Str == s;
         }
-        void Print()
+        void print()
         {
             std::cout << Str << std::endl;
         }
@@ -188,7 +188,7 @@ namespace Slate::Language
     using Valid_Next = typename Detail::Valid_Next_I<Type1, Type2>::Type;
 
     template <typename Type1, typename Type2>
-    constexpr bool Has_Valid_Next = !std::is_same_v<Valid_Next<Type1, Type2>, Meta::Wrap<>>;
+    constexpr bool has_valid_next = !std::is_same_v<Valid_Next<Type1, Type2>, Meta::Wrap<>>;
 
     namespace Detail
     {
@@ -203,7 +203,7 @@ namespace Slate::Language
     }
 
     template <typename Type1, typename Type2, typename ... Args>
-    constexpr bool Has_Action = Detail::Has_Action_I<Type1, Type2, void, Args...>::value;
+    constexpr bool has_action = Detail::Has_Action_I<Type1, Type2, void, Args...>::value;
 
     namespace Detail
     {
@@ -217,7 +217,7 @@ namespace Slate::Language
     }
 
     template <typename Type>
-    constexpr bool Is_Start_State = Detail::Is_Start_State_I<Type>::value;
+    constexpr bool is_start_state = Detail::Is_Start_State_I<Type>::value;
 
     namespace Detail
     {
@@ -229,7 +229,7 @@ namespace Slate::Language
             static Parsing_State Parse_Action(Iter& i, State_Stack& s, Parse_Stack& p) requires(std::is_same_v<T, Type>)//shift
             {
                 std::cout << "SHIFT: ";
-                T{}.Print();
+                T{}.print();
                 p.push_back(*i++);
                 s.push_back(Valid_Next<State, T>{});
                 return Parsing_State::parsing;
@@ -244,7 +244,7 @@ namespace Slate::Language
             static Parsing_State Parse_Action(Iter& i, State_Stack& s, Parse_Stack& p) requires(std::is_same_v<T, Type>)//goto
             {
                 std::cout << "GOTO: ";
-                T{}.Print();
+                T{}.print();
                 s.push_back(Valid_Next<State, T>{});
                 return Parsing_State::parsing;
             }
@@ -262,18 +262,18 @@ namespace Slate::Language
             using This = State_I<Wrap<Wrap<Rule, Wrap<Pre...>, Dot_Marker, Wrap<F, Post...>>, Rest...>>;
         public:
             template <typename T> requires(std::is_same_v<T, F>)
-            static State_I<Composition<Wrap<Wrap<Rule, Wrap<Pre..., F>, Dot_Marker, Wrap<Post...>>>>> Next_Imp();
+            static State_I<Composition<Wrap<Wrap<Rule, Wrap<Pre..., F>, Dot_Marker, Wrap<Post...>>>>> next_imp();
             using State_I<Wrap<Rest...>>::Next_Imp;
             
             using Action_I<F, This>::Parse_Action;
             using State_I<Wrap<Rest...>>::Parse_Action;
 
             template <typename T>
-            using Next = decltype(This::Next_Imp<T>());
+            using Next = decltype(This::next_imp<T>());
 
-            void Print()
+            void print()
             {
-                Rule{}.Print();
+                Rule{}.print();
             }
         };
 
@@ -283,16 +283,16 @@ namespace Slate::Language
             using This = State_I<Wrap<Wrap<Rule, Wrap<Pre...>, Dot_Marker, Wrap<F, Post...>>>>;
         public:
             template <typename T> requires(std::is_same_v<T, F>)
-            static State_I<Composition<Wrap<Wrap<Rule, Wrap<Pre..., F>, Dot_Marker, Wrap<Post...>>>>> Next_Imp();
+            static State_I<Composition<Wrap<Wrap<Rule, Wrap<Pre..., F>, Dot_Marker, Wrap<Post...>>>>> next_imp();
 
             using Action_I<F, This>::Parse_Action;
 
             template <typename T>
-            using Next = decltype(This::Next_Imp<T>());
+            using Next = decltype(This::next_imp<T>());
 
-            void Print()
+            void print()
             {
-                Rule{}.Print();
+                Rule{}.print();
             }
         };
 
@@ -311,18 +311,18 @@ namespace Slate::Language
                 template <typename T>
                 Parsing_State operator()(T)
                 {
-                    if constexpr(Slate::Language::Has_Action<T, Rule, Iter, State_Stack, Parse_Stack>)
-                        return T::template Parse_Action<Rule>(i, s, p);
+                    if constexpr(Slate::Language::has_action<T, Rule, Iter, State_Stack, Parse_Stack>)
+                        return T::template parse_action<Rule>(i, s, p);
                     else
                         return Parsing_State::reject;
                 }
             };
         public:
             template <typename T, typename Iter, typename State_Stack, typename Parse_Stack> 
-            static Parsing_State Parse_Action(Iter& iter, State_Stack& s, Parse_Stack& p) requires(!Language_Grammar<T> && !Is_Start_State<Rule>)//reduce
+            static Parsing_State parse_action(Iter& iter, State_Stack& s, Parse_Stack& p) requires(!Language_Grammar<T> && !is_start_state<Rule>)//reduce
             {
                 std::cout << "Reduce: ";
-                Rule{}.Print();
+                Rule{}.print();
                 for (std::size_t i{ 0 }; i < sizeof...(Pre);i++)
                 {
                     p.pop_back();
@@ -333,14 +333,14 @@ namespace Slate::Language
             }
 
             template <typename T, typename Iter, typename State_Stack, typename Parse_Stack> 
-            static Parsing_State Parse_Action(Iter& iter, State_Stack& s, Parse_Stack& p) requires(std::is_same_v<T, Terminate> && Is_Start_State<Rule>)//accept
+            static Parsing_State parse_action(Iter& iter, State_Stack& s, Parse_Stack& p) requires(std::is_same_v<T, Terminate> && is_start_state<Rule>)//accept
             {
                 return Parsing_State::accept;
             }
 
-            void Print()
+            void print()
             {
-                Rule{}.Print();
+                Rule{}.print();
             }
         };
     }
@@ -413,14 +413,14 @@ namespace Slate::Language
         template <typename Type1, typename Type2>
         Parsing_State operator()(Type1, Type2)
         {
-            if constexpr (Has_Action<Type1, Type2, Iter, State_Stack, Parse_Stack>)
-                return Type1::template Parse_Action<Type2>(i, s, p);
+            if constexpr (has_action<Type1, Type2, Iter, State_Stack, Parse_Stack>)
+                return Type1::template parse_action<Type2>(i, s, p);
             else
             {
                 std::cout << "Type1: ";
-                Type1{}.Print();
+                Type1{}.print();
                 std::cout << "Type2: ";
-                Type2{}.Print();
+                Type2{}.print();
                 return Parsing_State::reject;
             }
         }
@@ -432,7 +432,7 @@ namespace Slate::Language
         std::vector<Token_Alphabet<Grammars...>> data;
     public:
         template <typename Type>
-        auto Tokenize(Type&& input_stream)
+        auto tokenize(Type&& input_stream)
         {
             data.clear();
             std::string s;
@@ -443,7 +443,7 @@ namespace Slate::Language
                 ([&]()
                 {
                     if constexpr(!Language_Grammar<Grammars>)
-                        if (Grammars::Is_Valid(s))
+                        if (Grammars::is_valid(s))
                         {
                             data.emplace_back(Grammars{});
                             s.clear();
@@ -462,7 +462,7 @@ namespace Slate::Language
 
             for(auto& x : data)
                 std::visit(Overloaded{
-                    [](auto x) { if constexpr(!Language_Grammar<decltype(x)>)x.Print(); },
+                    [](auto x) { if constexpr(!Language_Grammar<decltype(x)>) x.print(); },
                 }, x);
             return data;
         }
@@ -476,19 +476,19 @@ namespace Slate::Language
         auto Parse(Token_Stream const& tokens)
         {
             auto iter = tokens.begin();
-            Meta::Cast<Type>(*this).state_stack.emplace_back(Meta::Cast<Type>(*this).Initial_State());
-            State_Visitor visitor{ iter, Meta::Cast<Type>(*this).state_stack, Meta::Cast<Type>(*this).parse_stack };
+            Meta::cast<Type>(*this).state_stack.emplace_back(Meta::cast<Type>(*this).Initial_State());
+            State_Visitor visitor{ iter, Meta::cast<Type>(*this).state_stack, Meta::cast<Type>(*this).parse_stack };
             while (true)
-                if (auto state = std::visit(visitor, Meta::Cast<Type>(*this).state_stack.back(), *iter); state == Parsing_State::accept)
+                if (auto state = std::visit(visitor, Meta::cast<Type>(*this).state_stack.back(), *iter); state == Parsing_State::accept)
                 {
-                    Meta::Cast<Type>(*this).add_parsed_entry(Meta::Cast<Type>(*this).parse_stack.back());
+                    Meta::cast<Type>(*this).add_parsed_entry(Meta::cast<Type>(*this).parse_stack.back());
                     break;
                 }
                 else if (state == Parsing_State::reject)
                 {
                     throw std::runtime_error{ "Invalid code" };
                 }
-            return Meta::Cast<Type>(*this).data;
+            return Meta::cast<Type>(*this).data;
         }
     };
 
@@ -504,7 +504,7 @@ namespace Slate::Language
         std::vector<Tokens> parse_stack;
         std::vector<Principle_Token> data;
 
-        auto Initial_State()
+        auto initial_state()
         {
             return Augmented_State{};
         }
