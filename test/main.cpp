@@ -67,7 +67,6 @@ void test_state_operation()
 void test_states_operation()
 {
     static_assert(std::is_same_v<Token_Alphabet<A>, std::variant<Rules::Start<A>, A, C, B, E, Terminals::$>>, "Wrong token alphabet");
-    //FAIL<Token_Alphabet<A>>();
     // static_assert(std::is_same_v<State_Alphabet<A>, std::variant<
     //     Slate::Language::Detail::State<Wrap<Wrap<Rules::Start<A>, Wrap<>, Wrap<A>>, Wrap<A, Wrap<>, Wrap<C>>, Wrap<C, Wrap<>, Wrap<B>>, Wrap<A, Wrap<>, Wrap<E>>>>,
     //     Slate::Language::Detail::State<Wrap<Wrap<Rules::Start<A>, Wrap<A>, Wrap<>>>>,

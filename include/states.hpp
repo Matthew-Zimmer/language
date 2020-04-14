@@ -5,15 +5,13 @@ namespace Slate::Language
 {
     namespace Detail
     {
-        using namespace Meta;
-
         namespace Detail
         {
             template <typename Type1, typename Type2, typename=void>
             class Valid_Next
             {
             public:
-                using Type = Wrap<>;
+                using Type = Meta::Wrap<>;
             };
 
             template <typename Type1, typename Type2>
@@ -26,80 +24,67 @@ namespace Slate::Language
 
         template <typename Type1, typename Type2>
         using Valid_Next = typename Detail::Valid_Next<Type1, Type2>::Type;
-        
-        template <typename Alphabet, typename Start_State>
-        class States
-        {};
 
-        template <typename ... Alphabet_Types, typename Start_State>
-        class States<Wrap<Alphabet_Types...>, Start_State>
+        template <typename A, typename S, typename V = Meta::Wrap<>>
+        class States
         {
             template <typename T, typename=void>
-            class Use_If_Not_Me
+            class Expand
             {
             public:
-                using Type = typename States<Wrap<Alphabet_Types...>, T>::Type;
+                using Type = Meta::Wrap<>;
             };
-
             template <typename T>
-            class Use_If_Not_Me<T, std::enable_if_t<std::is_same_v<T, Start_State>>>
+            class Expand<T, std::enable_if_t<!Meta::contains<V, T>>>
             {
             public:
-                using Type = Wrap<>; 
+                using Type = typename States<A, T, Meta::Append<T, V>>::Type;
             };
+            template <typename T>
+            using Next = Valid_Next<S, T>;
         public:
-            using Type = Join<
-                Start_State,
-                Valid_Next<Start_State, Alphabet_Types>..., 
-                typename Use_If_Not_Me<Valid_Next<Start_State, Alphabet_Types>>::Type...>;
+            using Type = Meta::Append<S, Meta::Join_For_Each<Meta::Join_For_Each<A, Next>, Expand>>;
         };
 
-        template <typename T>
-        class Terminal_Alphabet
+        template <typename T, typename K = Meta::Wrap<>>
+        class Full_Alphabet
         {
-            template <typename C>
-            class Builder
+            template <typename U, typename=void>
+            class Expand
             {
             public:
-                using Type = Meta::Join_For_Each<C, Terminal_Alphabet>;
+                using Type = Meta::Wrap<>;
+            };
+            template <typename U>
+            class Expand<U, std::enable_if_t<!Meta::contains<K, U>>>
+            {
+            public:
+                using Type = typename Full_Alphabet<U, K>::Type;
             };
         public:
-            // W<W<...>, W<...>>
-            using Type = Meta::Join_For_Each<Language::Production<T>, Builder>;
+            using Type = Meta::Join_For_Each<T, Expand>;
         };
-        template <Grammar_Terminal T>
-        class Terminal_Alphabet<T>
+        template <Grammar_Rule T, typename K>
+        class Full_Alphabet<T, K>
+        {
+        public:
+            using Type = Meta::Append<T, typename Full_Alphabet<Language::Production<T>, Meta::Append<T, K>>::Type>;
+        };
+        template <Grammar_Terminal T, typename K>
+        class Full_Alphabet<T, K>
         {
         public:
             using Type = T;
         };
-
         template <typename T>
-        class Token_Alphabet
-        {
-            template <typename C>
-            class Builder
-            {
-            public:
-                using Type = Meta::Join_For_Each<C, Token_Alphabet>;
-            };
-        public:
-            // W<W<...>, W<...>>
-            using Type = Meta::Append<T, Meta::Join_For_Each<Language::Production<T>, Builder>>;
-        };
-        template <Grammar_Terminal T>
-        class Token_Alphabet<T>
-        {
-        public:
-            using Type = T;
-        };
+        using Filter_Terminals = Meta::Use_If<Grammar_Terminal<T>, T>;
     }
 
     template <typename Starting_Grammar>
-    using Terminal_Alphabet = Meta::Convert<Meta::Unique<Meta::Append<typename Detail::Terminal_Alphabet<Starting_Grammar>::Type, Terminals::$>>, std::variant>;
+    using Terminal_Alphabet = Meta::Convert<Meta::Unique<Meta::Join_For_Each<Meta::Append<typename Detail::Full_Alphabet<Starting_Grammar>::Type, Terminals::$>, Detail::Filter_Terminals>>, std::variant>;
 
     template <typename Starting_Grammar>
-    using Token_Alphabet = Meta::Convert<Meta::Unique<Meta::Join<Rules::Start<Starting_Grammar>, typename Detail::Token_Alphabet<Starting_Grammar>::Type, Terminals::$>>, std::variant>;
+    using Token_Alphabet = Meta::Convert<Meta::Unique<Meta::Join<Rules::Start<Starting_Grammar>, typename Detail::Full_Alphabet<Starting_Grammar>::Type, Terminals::$>>, std::variant>;
     
     template <typename Starting_Grammar>
     using State_Alphabet = Meta::Convert<Meta::Unique<typename Detail::States<Meta::Unwrap_Tail<Meta::Convert<Token_Alphabet<Starting_Grammar>>>, State<Rules::Start<Starting_Grammar>>>::Type>, std::variant>;
