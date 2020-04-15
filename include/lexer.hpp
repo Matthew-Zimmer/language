@@ -1,6 +1,7 @@
 #pragma once
-#include "states.hpp"
 #include <vector>
+
+#include "alphabets.hpp"
 
 namespace Slate::Language
 {

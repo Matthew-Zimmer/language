@@ -18,9 +18,10 @@ namespace Slate::Language
     };
 
     template <typename Type>
-    concept Grammar_Expansion = requires()
+    concept Grammar_Operator = requires()
     {
-        !Grammar_Rule<Type>;
-        typename Type::Expansion;
+        typename Type::Closure;
+        typename Type::Shift_Head;
+        typename Type::Shift_Tail;
     };
 }

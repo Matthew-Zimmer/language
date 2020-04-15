@@ -1,6 +1,8 @@
 #pragma once
 #include <stdexcept>
-#include "states.hpp"
+#include <vector>
+
+#include "alphabets.hpp"
 
 template<class... Ts> 
 class Overloaded : public Ts... 
@@ -27,7 +29,10 @@ namespace Slate::Language
             if constexpr (requires(){Type1::template action<Type2>(i, s, p); })
                 return Type1::template action<Type2>(i, s, p);
             else
+            {
+                std::cout << "error parser" << std::endl;
                 return Parsing_State::reject;
+            }
         }
     };
 

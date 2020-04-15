@@ -6,15 +6,17 @@ target_include_directories(language_test PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>)
 
 set(headers 
-	composition.hpp
+	alphabets.hpp
+	closure.hpp
 	concepts.hpp
 	define.hpp
 	dot.hpp
 	grammar.hpp
 	lexer.hpp
+	next.hpp
+	operators.hpp
 	parser.hpp
 	production.hpp
-	state.hpp
-	states.hpp)
+	state.hpp)
 
 install(FILES ${headers} DESTINATION include/language)

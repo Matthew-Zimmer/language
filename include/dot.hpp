@@ -5,21 +5,21 @@ namespace Slate::Language
 {
     namespace Detail
     {
-        using namespace Meta;
-
-        template <typename Rule>
-        class Dot_Operator
+        template <typename>
+        class Dot
         {
         public:
-            template <typename T>
-            class Dot_Expansion
-            {
-            public:
-                using Type = Wrap<Rule, Wrap<>, T>;
-            };
+            using Type = Meta::Wrap<>;
+        };
+
+        template <Grammar_Rule T>
+        class Dot<T>
+        {
+        public:
+            using Type = Meta::Wrap<T, Meta::Wrap<>, Production<T>>;   
         };
     }
 
-    template <Grammar_Rule Type>
-    using Dot = Meta::For_Each<Production<Type>, Detail::Dot_Operator<Type>::template Dot_Expansion>;  
+    template <typename Type>
+    using Dot = typename Detail::Dot<Type>::Type;
 }

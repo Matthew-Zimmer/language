@@ -1,8 +1,9 @@
 #pragma once
 #include <variant>
 
-#include "composition.hpp"
+#include "closure.hpp"
 #include "grammar.hpp"
+#include "next.hpp"
 
 #include <iostream>
 
@@ -40,59 +41,50 @@ namespace Slate::Language
         template <typename Type>
         constexpr bool is_start_state = Detail::Is_Start_State<Type>::value;
 
-        using namespace Meta;
-
         template <typename>
         class State {};
 
-        template <typename Rule, typename ... Rest>
-        class State<Wrap<Rule, Rest...>> : public State<Wrap<Rule>>, public State<Wrap<Rest...>>
+        template <typename ... Rules>
+        class State<Meta::Wrap<Rules...>> : public State<Meta::Wrap<Rules>>...
         {
-            using First = State<Wrap<Rule>>;
-            using Other = State<Wrap<Rest...>>;
-            using This = State<Wrap<Rule, Rest...>>;
-        protected:
-            using First::next;
-            using Other::next;
         public:
-            using First::action;
-            using Other::action;
-
-            template <typename T>
-            using Next = decltype(std::declval<This>().template next<T>());
+            using State<Meta::Wrap<Rules>>::action...;
+            using Next = Meta::Unique<Meta::Join<typename State<Meta::Wrap<Rules>>::Next...>>;
+            using X = void;
         };
 
         template <typename Rule, typename ... Pre, typename F, typename ... Post>
-        class State<Wrap<Wrap<Rule, Wrap<Pre...>, Wrap<F, Post...>>>>
+        class State<Meta::Wrap<Meta::Wrap<Rule, Meta::Wrap<Pre...>, Meta::Wrap<F, Post...>>>>
         {
-            using This = State<Wrap<Wrap<Rule, Wrap<Pre...>, Wrap<F, Post...>>>>;
-        protected:
-            template <typename T> requires(std::is_same_v<T, F>)
-            static State<Slate::Language::Composition<Wrap<Wrap<Rule, Wrap<Pre..., F>, Wrap<Post...>>>>> next();
-        public:
             template <typename T>
-            using Next = decltype(std::declval<This>().template next<T>());
+            class Builder
+            {
+            public:
+                using Type = State<Language::Closure<T>>;
+            };
+        public:
+            using Next = Meta::Join_For_Each<Language::Next<Meta::Wrap<Rule, Meta::Wrap<Pre...>, Meta::Wrap<F, Post...>>>, Builder>;
 
             template <Grammar_Terminal T> 
-            static Parsing_State action(auto& i, auto& s, auto& p) requires(std::is_same_v<T, F>)//shift
+            static Parsing_State action(auto& i, auto& s, auto& p) requires(allowed_transition<T, F>)// shift
             {
                 std::cout << "Shift" << std::endl;
                 p.push_back(*i++);
-                s.push_back(typename This::Next<T>{});
+                s.push_back(typename Builder<typename Next_For<Meta::Wrap<Rule, Meta::Wrap<Pre...>, Meta::Wrap<F, Post...>>, T>::Type>::Type{});
                 return Parsing_State::parsing;
             }
 
             template <Grammar_Rule T> 
-            static Parsing_State action(auto& i, auto& s, auto& p) requires(std::is_same_v<T, F>)//goto
+            static Parsing_State action(auto& i, auto& s, auto& p) requires(allowed_transition<T, F>)// goto
             {
                 std::cout << "Goto" << std::endl;
-                s.push_back(typename This::Next<T>{});
+                s.push_back(typename Builder<typename Next_For<Meta::Wrap<Rule, Meta::Wrap<Pre...>, Meta::Wrap<F, Post...>>, T>::Type>::Type{});
                 return Parsing_State::parsing;
             }
         };
 
         template <typename Rule, typename ... Pre>
-        class State<Wrap<Wrap<Rule, Wrap<Pre...>, Wrap<>>>>
+        class State<Meta::Wrap<Meta::Wrap<Rule, Meta::Wrap<Pre...>, Meta::Wrap<>>>>
         {
             template <typename Iter, typename State_Stack, typename Parse_Stack>
             class Reduce_Visitor
@@ -112,6 +104,7 @@ namespace Slate::Language
                 template <typename T>
                 Parsing_State operator()(T)
                 {
+                    std::cout << "error state" << std::endl;
                     return Parsing_State::reject;
                 }
             };
@@ -135,9 +128,11 @@ namespace Slate::Language
                 std::cout << "Accept" << std::endl;
                 return Parsing_State::accept;
             }
+
+            using Next = Meta::Wrap<>;
         };
     }
 
     template <typename Grammar>
-    using State = Detail::State<Composition<Dot<Grammar>>>;
+    using State = Detail::State<Closure<Dot<Grammar>>>;
 }
