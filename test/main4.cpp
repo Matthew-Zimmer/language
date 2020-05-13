@@ -23,10 +23,10 @@ struct Expression : Rule<Or<Simple, There_Exists>>
 
 struct Proof : Rule<Expression> {};
 
-class Test_Parser3 : public Unit_Test<Test_Parser3>
+class Test_Parser4 : public Unit_Test<Test_Parser4>
 {
 public:
-    Test_Parser3() : Unit_Test{ "test parser3" }
+    Test_Parser4() : Unit_Test{ "test parser4" }
     {}
 
     auto run(Test<0>) 

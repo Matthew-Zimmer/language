@@ -21,10 +21,10 @@ class Expression : public Rule<Or<Declaration_Expression, There_Exists>>
 
 struct Proof : Rule<Expression>{};
 
-class Test_Parser3 : public Unit_Test<Test_Parser3>
+class Test_Parser5 : public Unit_Test<Test_Parser5>
 {
 public:
-    Test_Parser3() : Unit_Test{ "test parser3" }
+    Test_Parser5() : Unit_Test{ "test parser5" }
     {}
 
     auto run(Test<0>) 

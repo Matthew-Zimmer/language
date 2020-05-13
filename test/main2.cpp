@@ -1,114 +1,49 @@
-// #include <ordeal/ordeal.hpp>
+#include <iostream>
 
-// #include "lexer.hpp"
-// #include "parser.hpp"
+#include <ordeal/ordeal.hpp>
 
-// using namespace Slate::Language;
-// using namespace Slate::Meta;
-// using namespace Slate::Ordeal;
+#include "lexer.hpp"
+#include "parser.hpp"
+#include "define.hpp"
 
-// using namespace Expansions;
+using namespace Slate::Ordeal;
+using namespace Slate::Language;
+using namespace Slate::Language::Define;
 
-// class A{};
-// class B{};
-// class C{};
-// class D{};
-// class E{};
+struct a : Keyword<"a">{};
+struct b : Keyword<"b">{};
+struct c : Keyword<"c">{};
 
-// template <typename U, typename V>
-// void test()
+struct A : Rule<Join<a, b>>{};
+struct B : Rule<Or<Join<a, c>, A>>{};
+
+// class Test_Parser2 : public Unit_Test<Test_Parser2>
 // {
-//     static_assert(std::is_same_v<U, V>);
-// }
+// public:
+//     Test_Parser2() : Unit_Test{ "test parser2" }
+//     {}
 
-// template <typename T>
-// using P = Production<Rules::Rule<T>>;
+//     auto run(Test<0>) 
+//     {
+//         Lexer<B> lex;
+//         LR0<B> par;
+//         std::string input = "a b";
+//         try 
+//         {
+//             auto tokens = lex.tokenize(input);
 
-// void f()
-// {
-//     using Slate::Language::Expansions::Join;
-//     using Slate::Meta::Wrap;
+//             for (auto& token : tokens)
+//                 std::visit(Overloaded{
+//                     [](auto x){ std::cout << x.str() << std::endl; },
+//                     [](Terminals::$){ std::cout << "TERM" << std::endl; }
+//                 }, token);
 
-    
-    
-//     // JOIN
-    
-//     // simple in join
-//     test<P<Join<A, B>>, Wrap<Wrap<A, B>>>();
-
-//     // join in join
-//     test<P<Join<Join<A, B>>>, Wrap<Wrap<A, B>>>();
-
-//     // join simple in join
-//     test<P<Join<Join<A, B>, C>>, Wrap<Wrap<A, B, C>>>();
-
-//     // simple join in join
-//     test<P<Join<A, Join<B, C>>>, Wrap<Wrap<A, B, C>>>();
-    
-//     // join join in join
-//     test<P<Join<Join<A, B>, Join<C, D>>>, Wrap<Wrap<A, B, C, D>>>();
-
-//     // join join simple in join
-//     test<P<Join<Join<A, B>, Join<C, D>, E>>, Wrap<Wrap<A, B, C, D, E>>>();
-
-//     // join join join in join
-//     test<P<Join<Join<A, B>, Join<C, D>, Join<E>>>, Wrap<Wrap<A, B, C, D, E>>>();
-
-//     // simple or in join
-//     test<P<Join<A, Or<B, C>>>, Wrap<Wrap<A, B>, Wrap<A, C>>>();
-
-//     // simple or simple in join
-//     test<P<Join<A, Or<B, C>, D>>, Wrap<Wrap<A, B, D>, Wrap<A, C, D>>>();
-
-//     // or join in join
-//     test<P<Join<Or<A, B>, Join<C, D>>>, Wrap<Wrap<A, C, D>, Wrap<B, C, D>>>();
-
-//     // join or in join
-//     test<P<Join<Join<A, B>, Or<C, D>>>, Wrap<Wrap<A, B, C>, Wrap<A, B, D>>>();
-
-//     // or or in join
-//     test<P<Join<Or<A, B>, Or<C, D>>>, Wrap<Wrap<A, C>, Wrap<A, D>, Wrap<B, C>, Wrap<B, D>>>();
-
-//     // or or simple in join
-//     test<P<Join<Or<A, B>, Or<C, D>, E>>, Wrap<Wrap<A, C, E>, Wrap<A, D, E>, Wrap<B, C, E>, Wrap<B, D, E>>>();
-
-//     // simple Join<Join> in join
-//     test<P<Join<Join<A, Join<B, C>>>>, Wrap<Wrap<A, B, C>>>();
-
-//     // Join<Join> simple in join
-//     test<P<Join<Join<Join<A, B>, C>>>, Wrap<Wrap<A, B, C>>>();
-
-//     // Join<Join> simple in join
-//     test<P<Join<A, Join<Join<B, C>, D>>>, Wrap<Wrap<A, B, C, D>>>();
-
-//     // OR
-
-//     // simple in or
-//     test<P<Or<A, B>>, Wrap<Wrap<A>, Wrap<B>>>();
-
-//     // join in Or
-//     test<P<Or<Join<A, B>>>, Wrap<Wrap<A, B>>>();
-
-//     // join simple in or
-//     test<P<Or<Join<A, B>, C>>, Wrap<Wrap<A, B>, Wrap<C>>>();
-
-//     // simple join in or
-//     test<P<Or<A, Join<B, C>>>, Wrap<Wrap<A>, Wrap<B, C>>>();
-
-//     // or in or
-//     test<P<Or<Or<A, B>>>, Wrap<Wrap<A>, Wrap<B>>>();
-
-//     // or or in or
-//     test<P<Or<Or<A, B>, Or<C, D>>>, Wrap<Wrap<A>, Wrap<B>, Wrap<C>, Wrap<D>>>();
-
-//     // or<simple, or> in or
-//     test<P<Or<Or<A, Or<B, C>>>>, Wrap<Wrap<A>, Wrap<B>, Wrap<C>>>();
-
-//     // TOGETHER
-
-//     // or<simple join<simple, or>> simple
-//     test<P<Or<A, Join<B, Or<C, D>>, E>>, Wrap<Wrap<A>, Wrap<B, C>, Wrap<B, D>, Wrap<E>>>(); 
-
-//     // join<simple or<simple join> simple>
-//     test<P<Join<A, Or<B, Join<C, D>>, E>>, Wrap<Wrap<A, B, E>, Wrap<A, C, D, E>>>(); 
-// }
+//             par.parse(tokens);
+//             return "parser test:"_name = true;
+//         }
+//         catch (std::runtime_error& e)
+//         {
+//             return "parser test:"_name = false;
+//         }
+//     }
+// };

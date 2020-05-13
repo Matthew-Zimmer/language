@@ -31,10 +31,10 @@ struct Library : Rule<Join<Keyword<"library">, Identifier>>{};
 
 struct Proof : Rule<Join<Library, Export>> {};
 
-class Test_Parser2 : public Unit_Test<Test_Parser2>
+class Test_Parser3 : public Unit_Test<Test_Parser3>
 {
 public:
-    Test_Parser2() : Unit_Test{ "test parser2" }
+    Test_Parser3() : Unit_Test{ "test parser3" }
     {}
 
     auto run(Test<0>) 

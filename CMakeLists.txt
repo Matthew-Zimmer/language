@@ -13,7 +13,7 @@ target_compile_features(language INTERFACE cxx_std_20)
 target_compile_features(language_test PUBLIC cxx_std_20)
 
 #Set(CMAKE_CXX_FLAGS "-Wall" "-Wextra")
-set(CMAKE_CXX_FLAGS -fmax-errors=1)
+#set(CMAKE_CXX_FLAGS -fmax-errors=1)
 
 
 install(TARGETS language EXPORT language DESTINATION lib/language)

@@ -2,8 +2,8 @@
 #include <variant>
 
 #include "closure.hpp"
+#include "colapse.hpp"
 #include "grammar.hpp"
-#include "next.hpp"
 
 #include <iostream>
 
@@ -49,28 +49,21 @@ namespace Slate::Language
         {
         public:
             using State<Meta::Wrap<Rules>>::action...;
-            using Next = Meta::Unique<Meta::Join<typename State<Meta::Wrap<Rules>>::Next...>>;
-            using X = void;
+            using Next = Meta::Join_For_Each<Language::Colapse<Meta::Unique<Meta::Join<typename State<Meta::Wrap<Rules>>::Next...>>>, Meta::Adapter<State>::Function>;
         };
 
         template <typename Rule, typename ... Pre, typename F, typename ... Post>
         class State<Meta::Wrap<Meta::Wrap<Rule, Meta::Wrap<Pre...>, Meta::Wrap<F, Post...>>>>
         {
-            template <typename T>
-            class Builder
-            {
-            public:
-                using Type = State<Language::Closure<T>>;
-            };
         public:
-            using Next = Meta::Join_For_Each<Language::Next<Meta::Wrap<Rule, Meta::Wrap<Pre...>, Meta::Wrap<F, Post...>>>, Builder>;
+            using Next = Meta::Join_For_Each<Language::Next<Meta::Wrap<Rule, Meta::Wrap<Pre...>, Meta::Wrap<F, Post...>>>, Meta::Adapter<Language::Closure>::Function>;
 
             template <Grammar_Terminal T> 
             static Parsing_State action(auto& i, auto& s, auto& p) requires(allowed_transition<T, F>)// shift
             {
                 std::cout << "Shift" << std::endl;
                 p.push_back(*i++);
-                s.push_back(typename Builder<typename Next_For<Meta::Wrap<Rule, Meta::Wrap<Pre...>, Meta::Wrap<F, Post...>>, T>::Type>::Type{});
+                s.push_back(State<Language::Closure<typename Next_For<Meta::Wrap<Rule, Meta::Wrap<Pre...>, Meta::Wrap<F, Post...>>, T>::Type>>{});
                 return Parsing_State::parsing;
             }
 
@@ -78,7 +71,7 @@ namespace Slate::Language
             static Parsing_State action(auto& i, auto& s, auto& p) requires(allowed_transition<T, F>)// goto
             {
                 std::cout << "Goto" << std::endl;
-                s.push_back(typename Builder<typename Next_For<Meta::Wrap<Rule, Meta::Wrap<Pre...>, Meta::Wrap<F, Post...>>, T>::Type>::Type{});
+                s.push_back(State<Language::Closure<typename Next_For<Meta::Wrap<Rule, Meta::Wrap<Pre...>, Meta::Wrap<F, Post...>>, T>::Type>>{});
                 return Parsing_State::parsing;
             }
         };

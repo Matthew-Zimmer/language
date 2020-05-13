@@ -34,6 +34,19 @@ namespace Slate::Language
             using Type = typename Expand<typename F::Shift_Head, typename F::Shift_Tail>::Type;
         };
 
+        template <typename>
+        class Next_Token
+        {};
+
+        template <typename Rule, typename Pre, typename Post>
+        class Next_Token<Meta::Wrap<Rule, Pre, Post>>
+        {
+            template <typename, typename=void>
+            class Extract{};
+        public:
+            using Type = Meta::Wrap<F>;
+        };
+
         template <typename, typename>
         class Next_For{};
 

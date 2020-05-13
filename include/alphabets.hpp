@@ -5,26 +5,6 @@ namespace Slate::Language
 {
     namespace Detail
     {
-        // namespace Detail
-        // {
-        //     template <typename Type1, typename Type2, typename=void>
-        //     class Valid_Next
-        //     {
-        //     public:
-        //         using Type = Meta::Wrap<>;
-        //     };
-
-        //     template <typename Type1, typename Type2>
-        //     class Valid_Next<Type1, Type2, std::void_t<typename Type1::Next>>
-        //     {
-        //     public:
-        //         using Type = typename Type1::Next<Type2>;
-        //     };
-        // }
-
-        // template <typename Type1, typename Type2>
-        // using Valid_Next = typename Detail::Valid_Next<Type1, Type2>::Type;
-
         template <typename S, typename V = Meta::Wrap<>>
         class States
         {
